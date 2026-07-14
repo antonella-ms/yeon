@@ -39,7 +39,12 @@ async function getOwnedCard(instanceId: number, ownerId: string) {
 
 async function describeCard(instanceId: number) {
   const rows = await db
-    .select({ memberName: cardsTable.memberName, groupName: cardsTable.groupName })
+    .select({
+      memberName: cardsTable.memberName,
+      groupName: cardsTable.groupName,
+      code: cardsTable.code,
+      copyNumber: userCardsTable.copyNumber,
+    })
     .from(userCardsTable)
     .innerJoin(cardsTable, eq(userCardsTable.cardId, cardsTable.id))
     .where(eq(userCardsTable.id, instanceId));
@@ -91,8 +96,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setColor(0xf2c9dc)
       .setTitle(`🔁 Propuesta de intercambio #${trade!.id}`)
       .setDescription(
-        `${interaction.user.username} ofrece **${myDesc?.memberName}** (${myDesc?.groupName})\n` +
-          `a cambio de **${theirDesc?.memberName}** (${theirDesc?.groupName}) de ${targetUser.username}.`,
+        `${interaction.user.username} ofrece **${myDesc?.memberName}** (${myDesc?.groupName}) \`${myDesc?.code}#${myDesc?.copyNumber}\`\n` +
+          `a cambio de **${theirDesc?.memberName}** (${theirDesc?.groupName}) \`${theirDesc?.code}#${theirDesc?.copyNumber}\` de ${targetUser.username}.`,
       )
       .setFooter({ text: `Solo ${targetUser.username} puede aceptar o rechazar` });
 

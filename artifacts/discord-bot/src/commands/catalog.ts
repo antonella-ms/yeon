@@ -42,7 +42,10 @@ function buildEmbed(cards: Card[], page: number, totalPages: number, group?: str
   } else {
     embed.setDescription(
       pageCards
-        .map((c) => `\`#${c.id}\` **${c.memberName}** — ${c.groupName} (${RARITY_LABELS[c.rarity]})`)
+        .map(
+          (c) =>
+            `\`${c.code}\` **${c.memberName}** — ${c.groupName} · ${c.era} (${RARITY_LABELS[c.rarity]})`,
+        )
         .join("\n"),
     );
   }

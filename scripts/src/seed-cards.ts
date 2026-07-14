@@ -6,7 +6,32 @@ type SeedCard = {
   groupName: string;
   memberName: string;
   rarity: CardRarity;
+  code: string;
 };
+
+// Deliberately short, memorable 2-letter group initials, chosen to avoid
+// clashes with each other. Era initials will be folded in once eras exist
+// (for now every card's `era` column defaults to "—").
+const GROUP_CODES: Record<string, string> = {
+  aespa: "AE",
+  "&TEAM": "AT",
+  ENHYPEN: "EN",
+  ATEEZ: "TZ",
+  ILLIT: "IL",
+  TWICE: "TW",
+  "Stray Kids": "SK",
+};
+
+// Letters-only idol code, growing from 2 letters only if needed to stay
+// unique within the group (never falls back to digits).
+function idolCode(memberName: string, taken: Set<string>): string {
+  const cleaned = memberName.replace(/[^a-zA-Z]/g, "").toUpperCase();
+  for (let len = 2; len <= Math.max(cleaned.length, 2); len++) {
+    const candidate = cleaned.slice(0, len);
+    if (!taken.has(candidate)) return candidate;
+  }
+  return cleaned;
+}
 
 const GROUPS: Record<string, [string, CardRarity][]> = {
   aespa: [
@@ -74,10 +99,15 @@ const GROUPS: Record<string, [string, CardRarity][]> = {
   ],
 };
 
-const seedCards: SeedCard[] = Object.entries(GROUPS).flatMap(
-  ([groupName, members]) =>
-    members.map(([memberName, rarity]) => ({ groupName, memberName, rarity })),
-);
+const seedCards: SeedCard[] = Object.entries(GROUPS).flatMap(([groupName, members]) => {
+  const groupCode = GROUP_CODES[groupName] ?? groupName.replace(/[^a-zA-Z]/g, "").slice(0, 2).toUpperCase();
+  const taken = new Set<string>();
+  return members.map(([memberName, rarity]) => {
+    const idol = idolCode(memberName, taken);
+    taken.add(idol);
+    return { groupName, memberName, rarity, code: `${groupCode}${idol}` };
+  });
+});
 
 async function main() {
   console.log(`Seeding ${seedCards.length} cards...`);

@@ -14,6 +14,9 @@ export const userCardsTable = pgTable("user_cards", {
   cardId: integer("card_id")
     .notNull()
     .references(() => cardsTable.id),
+  // Which numbered copy of this card design this is (1st ever dropped, 2nd, etc).
+  // Assigned once at drop time and never changes, even if the card is traded.
+  copyNumber: integer("copy_number").notNull(),
   obtainedAt: timestamp("obtained_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

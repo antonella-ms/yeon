@@ -25,17 +25,22 @@ type GroupedEntry = {
   cardId: number;
   memberName: string;
   groupName: string;
+  era: string;
+  code: string;
   rarity: CardRarity;
-  instanceIds: number[];
+  copies: { instanceId: number; copyNumber: number }[];
 };
 
 async function loadInventory(ownerId: string): Promise<GroupedEntry[]> {
   const rows = await db
     .select({
       instanceId: userCardsTable.id,
+      copyNumber: userCardsTable.copyNumber,
       cardId: cardsTable.id,
       memberName: cardsTable.memberName,
       groupName: cardsTable.groupName,
+      era: cardsTable.era,
+      code: cardsTable.code,
       rarity: cardsTable.rarity,
     })
     .from(userCardsTable)
@@ -46,14 +51,16 @@ async function loadInventory(ownerId: string): Promise<GroupedEntry[]> {
   for (const row of rows) {
     const existing = grouped.get(row.cardId);
     if (existing) {
-      existing.instanceIds.push(row.instanceId);
+      existing.copies.push({ instanceId: row.instanceId, copyNumber: row.copyNumber });
     } else {
       grouped.set(row.cardId, {
         cardId: row.cardId,
         memberName: row.memberName,
         groupName: row.groupName,
+        era: row.era,
+        code: row.code,
         rarity: row.rarity,
-        instanceIds: [row.instanceId],
+        copies: [{ instanceId: row.instanceId, copyNumber: row.copyNumber }],
       });
     }
   }
@@ -75,10 +82,16 @@ function buildEmbed(username: string, entries: GroupedEntry[], page: number, tot
   } else {
     embed.setDescription(
       pageEntries
-        .map(
-          (e) =>
-            `**${e.memberName}** — ${e.groupName} (${RARITY_LABELS[e.rarity]}) x${e.instanceIds.length}\nIDs: ${e.instanceIds.join(", ")}`,
-        )
+        .map((e) => {
+          const copiesLabel = e.copies
+            .sort((a, b) => a.copyNumber - b.copyNumber)
+            .map((c) => `#${c.copyNumber} (id ${c.instanceId})`)
+            .join(", ");
+          return (
+            `**${e.memberName}** — ${e.groupName} · ${e.era} (${RARITY_LABELS[e.rarity]})\n` +
+            `Code: \`${e.code}\` · Copias: ${copiesLabel}`
+          );
+        })
         .join("\n\n"),
     );
   }

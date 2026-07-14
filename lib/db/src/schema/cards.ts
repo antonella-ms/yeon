@@ -12,6 +12,11 @@ export const cardsTable = pgTable("cards", {
   id: serial("id").primaryKey(),
   groupName: text("group_name").notNull(),
   memberName: text("member_name").notNull(),
+  // Short trade code (group + idol + era initials, e.g. "ESTV"). Era is
+  // omitted for now since eras haven't been defined yet.
+  code: text("code").notNull().unique(),
+  // Human-readable era label, e.g. "The Sin: Vanish". "—" until eras exist.
+  era: text("era").notNull().default("—"),
   rarity: text("rarity", { enum: CARD_RARITIES }).notNull().default("common"),
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at", { withTimezone: true })

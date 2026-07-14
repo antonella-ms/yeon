@@ -1,6 +1,5 @@
 import { Client, Events, GatewayIntentBits, REST, Routes } from "discord.js";
 import { commands } from "./commands";
-import { handleClaim } from "./commands/drop";
 import { handlePage as handleInventoryPage } from "./commands/inventory";
 import { handlePage as handleCatalogPage } from "./commands/catalog";
 import { handleTradeButton } from "./commands/trade";
@@ -59,11 +58,6 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     if (interaction.isButton()) {
       const [namespace, ...rest] = interaction.customId.split(":");
-
-      if (namespace === "drop" && rest[0] === "claim") {
-        await handleClaim(interaction, rest[1]!, Number(rest[2]));
-        return;
-      }
 
       if (namespace === "inv") {
         await handleInventoryPage(interaction, rest[0]!, Number(rest[1]));

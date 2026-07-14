@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "discord.js";
 import { db, cardsTable, userCardsTable, type Card, type CardRarity } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export const RARITY_COLORS: Record<CardRarity, number> = {
   common: 0x9aa3ad,
@@ -66,11 +66,20 @@ export function cardEmbed(card: Card, opts?: { title?: string; footer?: string }
   return embed;
 }
 
-/** Gives a copy of `cardId` to `ownerId` and returns the new inventory row. */
+/**
+ * Gives a fresh copy of `cardId` to `ownerId`, assigning the next sequential
+ * copy number for that card design (1st ever dropped, 2nd, etc). Copy numbers
+ * never get reused, even if earlier copies are traded away.
+ */
 export async function giveCardToPlayer(ownerId: string, cardId: number) {
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(userCardsTable)
+    .where(eq(userCardsTable.cardId, cardId));
+
   const [userCard] = await db
     .insert(userCardsTable)
-    .values({ ownerId, cardId })
+    .values({ ownerId, cardId, copyNumber: Number(count) + 1 })
     .returning();
   return userCard!;
 }

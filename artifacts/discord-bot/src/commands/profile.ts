@@ -20,6 +20,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       cardId: cardsTable.id,
       memberName: cardsTable.memberName,
       groupName: cardsTable.groupName,
+      era: cardsTable.era,
+      code: cardsTable.code,
       rarity: cardsTable.rarity,
     })
     .from(userCardsTable)
@@ -42,7 +44,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       { name: "Diseños distintos", value: `${distinctDesigns} / ${totalCatalog?.count ?? 0}`, inline: true },
       {
         name: "Carta más rara",
-        value: rarest ? `${rarest.memberName} — ${rarest.groupName} (${RARITY_LABELS[rarest.rarity]})` : "Ninguna todavía",
+        value: rarest
+          ? `${rarest.memberName} — ${rarest.groupName} · ${rarest.era} (${RARITY_LABELS[rarest.rarity]}) · \`${rarest.code}\``
+          : "Ninguna todavía",
       },
     );
 
