@@ -1,3 +1,13 @@
+import { createServer } from "node:http";
+
+const PORT = Number(process.env["PORT"] ?? 3000);
+createServer((_req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("Ye-on Bot is running");
+}).listen(PORT, "0.0.0.0", () => {
+  console.log(`Health check server listening on port ${PORT}`);
+});
+
 import { Client, Events, GatewayIntentBits, REST, Routes } from "discord.js";
 import { commands } from "./commands";
 import { handlePage as handleInventoryPage } from "./commands/inventory";
