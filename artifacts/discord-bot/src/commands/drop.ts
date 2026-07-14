@@ -8,14 +8,14 @@ import { getOrCreatePlayer } from "../lib/economy";
 import { createDropSession, getDropSession, expireDropSession, buildDropRows } from "../lib/dropSessions";
 import { logger } from "../lib/logger";
 
-const DROP_SIZE = 3;
+const DROP_SIZE = 1;
 const DROP_DURATION_MS = 60_000;
 const channelCooldowns = new Map<string, number>();
 const CHANNEL_COOLDOWN_MS = 15_000;
 
 export const data = new SlashCommandBuilder()
   .setName("drop")
-  .setDescription("Suelta 3 cartas aleatorias para que el canal las reclame");
+  .setDescription("Suelta una carta aleatoria para que el canal la reclame");
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const channelId = interaction.channelId;
@@ -43,10 +43,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   channelCooldowns.set(channelId, now);
   const session = createDropSession(cards);
 
-  const embeds = cards.map((card, idx) => cardEmbed(card, { footer: `Carta ${idx + 1} de ${cards.length}` }));
+  const embeds = cards.map((card) => cardEmbed(card));
 
   const reply = await interaction.reply({
-    content: `${interaction.user.username} soltó cartas nuevas. ¡El primero en tocar el botón se la queda!`,
+    content: `${interaction.user.username} soltó una carta nueva. ¡El primero en tocar el botón se la queda!`,
     embeds,
     components: buildDropRows(session),
     withResponse: true,

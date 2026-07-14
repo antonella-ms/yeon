@@ -16,12 +16,13 @@ export const RARITY_LABELS: Record<CardRarity, string> = {
   legendary: "★ Legendaria ★",
 };
 
-// Weighted so commons drop far more often than legendaries.
+// Provisional 3-tier drop odds: rareza 1 (common) 65%, rareza 2 (rare) 25%,
+// rareza 3 (epic + legendary) 10%, split unevenly so legendary stays the rarest.
 const RARITY_WEIGHTS: Record<CardRarity, number> = {
-  common: 50,
-  rare: 30,
-  epic: 15,
-  legendary: 5,
+  common: 65,
+  rare: 25,
+  epic: 7,
+  legendary: 3,
 };
 
 /** Picks `count` random card designs from the catalog, weighted by rarity. */
