@@ -1,0 +1,1 @@
+- [Discord bot setup](discord-bot-setup.md) — Client ID must match the bot token's own application; use per-guild command registration for instant availability.
