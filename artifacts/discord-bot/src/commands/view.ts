@@ -9,7 +9,7 @@ export const data = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName("codigo")
-      .setDescription("Código completo con hash, ej: T2J1.a7fe")
+      .Los códigos que quieras visualizar")
       .setRequired(true),
   );
 
