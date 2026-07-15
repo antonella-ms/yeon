@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { pickRandomCards, giveCardToPlayer, formatCardCode, RARITY_DIAMONDS } from "../lib/cards";
+import { pickRandomCards, giveCardToPlayer, formatCardCode, cardEmbed, RARITY_DIAMONDS } from "../lib/cards";
 import { getOrCreatePlayer } from "../lib/economy";
 
 const CHANNEL_COOLDOWN_MS = 15_000;
@@ -42,5 +42,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       `<@${interaction.user.id}>, ¡conseguiste una carta! ✨ #${userCard.copyNumber}\n` +
       `${RARITY_DIAMONDS[card.rarity]} ${card.groupName} ${card.memberName} · ${card.era}\n` +
       `\`${formatCardCode(card, userCard)}\``,
+    embeds: [cardEmbed(card)],
   });
 }
