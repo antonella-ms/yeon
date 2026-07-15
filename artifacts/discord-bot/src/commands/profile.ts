@@ -23,6 +23,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       era: cardsTable.era,
       code: cardsTable.code,
       rarity: cardsTable.rarity,
+      hash: userCardsTable.hash,
     })
     .from(userCardsTable)
     .innerJoin(cardsTable, eq(userCardsTable.cardId, cardsTable.id))
@@ -32,7 +33,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const distinctDesigns = new Set(ownedCards.map((c) => c.cardId)).size;
   const [totalCatalog] = await db.select({ count: sql<number>`count(*)` }).from(cardsTable);
 
-  const rarityRank = { legendary: 3, epic: 2, rare: 1, common: 0 };
+  const rarityRank = { epic: 2, rare: 1, common: 0 };
   const rarest = ownedCards.sort((a, b) => rarityRank[b.rarity] - rarityRank[a.rarity])[0];
 
   const embed = new EmbedBuilder()
@@ -45,7 +46,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       {
         name: "Carta más rara",
         value: rarest
-          ? `${rarest.memberName} — ${rarest.groupName} · ${rarest.era} (${RARITY_LABELS[rarest.rarity]}) · \`${rarest.code}\``
+          ? `${rarest.memberName} — ${rarest.groupName} · ${rarest.era} (${RARITY_LABELS[rarest.rarity]}) · \`${rarest.code}.${rarest.hash}\``
           : "Ninguna todavía",
       },
     );
