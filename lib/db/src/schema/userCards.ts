@@ -17,6 +17,10 @@ export const userCardsTable = pgTable("user_cards", {
   // Which numbered copy of this card design this is (1st ever dropped, 2nd, etc).
   // Assigned once at drop time and never changes, even if the card is traded.
   copyNumber: integer("copy_number").notNull(),
+  // 4-char lowercase hex identifier unique per copy, e.g. "a8fe". Randomly
+  // generated at drop time and shown appended to the card's code, e.g.
+  // "ATMA2.a8fe".
+  hash: text("hash").notNull().unique(),
   obtainedAt: timestamp("obtained_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
