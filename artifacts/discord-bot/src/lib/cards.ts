@@ -1,31 +1,64 @@
 import { EmbedBuilder } from "discord.js";
-import { db, cardsTable, userCardsTable, type Card, type CardRarity } from "@workspace/db";
+import { db, cardsTable, userCardsTable, type Card, type CardRarity, type UserCard } from "@workspace/db";
 import { eq, sql } from "drizzle-orm";
 
 export const RARITY_COLORS: Record<CardRarity, number> = {
   common: 0x9aa3ad,
   rare: 0x4d8fdc,
   epic: 0xa15bde,
-  legendary: 0xe8b93b,
 };
 
 export const RARITY_LABELS: Record<CardRarity, string> = {
   common: "Común",
   rare: "Rara",
   epic: "Épica",
-  legendary: "★ Legendaria ★",
 };
 
-// Provisional 3-tier drop odds: rareza 1 (common) 65%, rareza 2 (rare) 25%,
-// rareza 3 (epic + legendary) 10%, split unevenly so legendary stays the rarest.
+// Lemon emojis shown before the group/era line, one per rarity tier
+// (1 for common, 2 for rare, 3 for epic).
+export const RARITY_DIAMONDS: Record<CardRarity, string> = {
+  common: "🍋",
+  rare: "🍋🍋",
+  epic: "🍋🍋🍋",
+};
+
+// 3-tier drop odds: rareza 1 (common) 65%, rareza 2 (rare) 25%,
+// rareza 3 (epic) 10%.
 const RARITY_WEIGHTS: Record<CardRarity, number> = {
   common: 65,
   rare: 25,
-  epic: 7,
-  legendary: 3,
+  epic: 10,
 };
 
-/** Picks `count` random card designs from the catalog, weighted by rarity. */
+const HASH_CHARS = "0123456789abcdef";
+const HASH_LENGTH = 4;
+const MAX_HASH_ATTEMPTS = 20;
+
+function randomHash(): string {
+  let hash = "";
+  for (let i = 0; i < HASH_LENGTH; i++) {
+    hash += HASH_CHARS[Math.floor(Math.random() * HASH_CHARS.length)];
+  }
+  return hash;
+}
+
+async function generateUniqueHash(): Promise<string> {
+  for (let attempt = 0; attempt < MAX_HASH_ATTEMPTS; attempt++) {
+    const candidate = randomHash();
+    const existing = await db.query.userCardsTable.findFirst({
+      where: eq(userCardsTable.hash, candidate),
+    });
+    if (!existing) return candidate;
+  }
+  throw new Error(
+    "Could not generate a unique card hash after multiple attempts. The hash space may be nearly exhausted.",
+  );
+}
+
+export function formatCardCode(card: Card, userCard: UserCard): string {
+  return `${card.code}.${userCard.hash}`;
+}
+
 export async function pickRandomCards(count: number): Promise<Card[]> {
   const allCards = await db.query.cardsTable.findMany();
   if (allCards.length === 0) return [];
@@ -66,20 +99,17 @@ export function cardEmbed(card: Card, opts?: { title?: string; footer?: string }
   return embed;
 }
 
-/**
- * Gives a fresh copy of `cardId` to `ownerId`, assigning the next sequential
- * copy number for that card design (1st ever dropped, 2nd, etc). Copy numbers
- * never get reused, even if earlier copies are traded away.
- */
 export async function giveCardToPlayer(ownerId: string, cardId: number) {
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)` })
     .from(userCardsTable)
     .where(eq(userCardsTable.cardId, cardId));
 
+  const hash = await generateUniqueHash();
+
   const [userCard] = await db
     .insert(userCardsTable)
-    .values({ ownerId, cardId, copyNumber: Number(count) + 1 })
+    .values({ ownerId, cardId, copyNumber: Number(count) + 1, hash })
     .returning();
   return userCard!;
 }
