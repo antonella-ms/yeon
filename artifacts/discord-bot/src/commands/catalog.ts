@@ -8,7 +8,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { db, cardsTable, type Card } from "@workspace/db";
-import { RARITY_LABELS } from "../lib/cards";
+import { RARITY_LABELS, RARITY_DIAMONDS } from "../lib/cards";
 
 const PAGE_SIZE = 10;
 
@@ -44,7 +44,7 @@ function buildEmbed(cards: Card[], page: number, totalPages: number, group?: str
       pageCards
         .map(
           (c) =>
-            `\`${c.code}\` **${c.memberName}** — ${c.groupName} · ${c.era} (${RARITY_LABELS[c.rarity]})`,
+            `\`${c.code}\` ${RARITY_DIAMONDS[c.rarity]} **${c.memberName}** — ${c.groupName} · ${c.era} (${RARITY_LABELS[c.rarity]})`,
         )
         .join("\n"),
     );
