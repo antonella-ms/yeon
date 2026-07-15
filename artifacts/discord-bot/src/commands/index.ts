@@ -9,6 +9,7 @@ import * as trade from "./trade";
 import * as market from "./market";
 import * as leaderboard from "./leaderboard";
 import * as help from "./help";
+import * as view from "./view";
 
 export type Command = {
   data: SlashCommandBuilder;
@@ -26,6 +27,7 @@ export const commands: Command[] = [
   market,
   leaderboard,
   help,
+  view,
 ] as unknown as Command[];
 
-export { drop, inventory, catalog, trade, market };
+export { drop, inventory, catalog, trade, market, view };
