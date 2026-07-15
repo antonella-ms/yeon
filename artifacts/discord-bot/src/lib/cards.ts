@@ -80,20 +80,11 @@ function weightedPick(cards: Card[]): Card {
   return cards[cards.length - 1]!;
 }
 
-export function cardEmbed(card: Card, opts?: { title?: string; footer?: string }) {
-  const embed = new EmbedBuilder()
-    .setColor(RARITY_COLORS[card.rarity])
-    .setTitle(opts?.title ?? `${card.memberName} — ${card.groupName}`)
-    .addFields(
-      { name: "Grupo", value: card.groupName, inline: true },
-      { name: "Rareza", value: RARITY_LABELS[card.rarity], inline: true },
-    );
+export function cardEmbed(card: Card) {
+  const embed = new EmbedBuilder().setColor(RARITY_COLORS[card.rarity]);
 
   if (card.imageUrl) {
     embed.setImage(card.imageUrl);
-  }
-  if (opts?.footer) {
-    embed.setFooter({ text: opts.footer });
   }
 
   return embed;
