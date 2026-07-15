@@ -9,7 +9,7 @@ export const data = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName("codigo")
-      .Los códigos que quieras visualizar")
+     .Los códigos que quieras visualizar")
       .setRequired(true),
   );
 
