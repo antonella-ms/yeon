@@ -44,6 +44,7 @@ async function describeCard(instanceId: number) {
       groupName: cardsTable.groupName,
       code: cardsTable.code,
       copyNumber: userCardsTable.copyNumber,
+      hash: userCardsTable.hash,
     })
     .from(userCardsTable)
     .innerJoin(cardsTable, eq(userCardsTable.cardId, cardsTable.id))
@@ -96,8 +97,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setColor(0xf2c9dc)
       .setTitle(`🔁 Propuesta de intercambio #${trade!.id}`)
       .setDescription(
-        `${interaction.user.username} ofrece **${myDesc?.memberName}** (${myDesc?.groupName}) \`${myDesc?.code}#${myDesc?.copyNumber}\`\n` +
-          `a cambio de **${theirDesc?.memberName}** (${theirDesc?.groupName}) \`${theirDesc?.code}#${theirDesc?.copyNumber}\` de ${targetUser.username}.`,
+        `${interaction.user.username} ofrece **${myDesc?.memberName}** (${myDesc?.groupName}) \`${myDesc?.code}.${myDesc?.hash}\`\n` +
+          `a cambio de **${theirDesc?.memberName}** (${theirDesc?.groupName}) \`${theirDesc?.code}.${theirDesc?.hash}\` de ${targetUser.username}.`,
       )
       .setFooter({ text: `Solo ${targetUser.username} puede aceptar o rechazar` });
 
@@ -170,7 +171,6 @@ export async function handleTradeButton(interaction: ButtonInteraction, action: 
     return;
   }
 
-  // Swap ownership of the two card copies.
   await db
     .update(userCardsTable)
     .set({ ownerId: trade.recipientId })
