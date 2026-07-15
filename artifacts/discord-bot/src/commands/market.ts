@@ -52,6 +52,7 @@ async function describeListing(listingId: number) {
       rarity: cardsTable.rarity,
       code: cardsTable.code,
       copyNumber: userCardsTable.copyNumber,
+      hash: userCardsTable.hash,
     })
     .from(marketListingsTable)
     .innerJoin(userCardsTable, eq(marketListingsTable.userCardId, userCardsTable.id))
@@ -69,6 +70,7 @@ function buildListEmbed(
     groupName: string;
     code: string;
     copyNumber: number;
+    hash: string;
   }[],
   page: number,
   totalPages: number,
@@ -87,7 +89,7 @@ function buildListEmbed(
       pageListings
         .map(
           (l) =>
-            `\`#${l.id}\` **${l.memberName}** — ${l.groupName} \`${l.code}#${l.copyNumber}\` · ${l.price} monedas (vende <@${l.sellerId}>)`,
+            `\`#${l.id}\` **${l.memberName}** — ${l.groupName} \`${l.code}.${l.hash}\` · ${l.price} monedas (vende <@${l.sellerId}>)`,
         )
         .join("\n"),
     );
@@ -114,6 +116,7 @@ async function loadActiveListings() {
       groupName: cardsTable.groupName,
       code: cardsTable.code,
       copyNumber: userCardsTable.copyNumber,
+      hash: userCardsTable.hash,
     })
     .from(marketListingsTable)
     .innerJoin(userCardsTable, eq(marketListingsTable.userCardId, userCardsTable.id))
