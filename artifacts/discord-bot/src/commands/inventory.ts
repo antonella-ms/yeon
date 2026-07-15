@@ -8,11 +8,11 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { db, cardsTable, userCardsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
-import { RARITY_LABELS } from "../lib/cards";
+import { eq, desc } from "drizzle-orm";
+import { RARITY_DIAMONDS } from "../lib/cards";
 import type { CardRarity } from "@workspace/db";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 5;
 
 export const data = new SlashCommandBuilder()
   .setName("inventory")
@@ -21,22 +21,23 @@ export const data = new SlashCommandBuilder()
     opt.setName("usuario").setDescription("Ver la colección de otra persona").setRequired(false),
   );
 
-type GroupedEntry = {
-  cardId: number;
+type InventoryEntry = {
+  instanceId: number;
+  copyNumber: number;
+  hash: string;
   memberName: string;
   groupName: string;
   era: string;
   code: string;
   rarity: CardRarity;
-  copies: { instanceId: number; copyNumber: number }[];
 };
 
-async function loadInventory(ownerId: string): Promise<GroupedEntry[]> {
-  const rows = await db
+async function loadInventory(ownerId: string): Promise<InventoryEntry[]> {
+  return db
     .select({
       instanceId: userCardsTable.id,
       copyNumber: userCardsTable.copyNumber,
-      cardId: cardsTable.id,
+      hash: userCardsTable.hash,
       memberName: cardsTable.memberName,
       groupName: cardsTable.groupName,
       era: cardsTable.era,
@@ -45,53 +46,30 @@ async function loadInventory(ownerId: string): Promise<GroupedEntry[]> {
     })
     .from(userCardsTable)
     .innerJoin(cardsTable, eq(userCardsTable.cardId, cardsTable.id))
-    .where(eq(userCardsTable.ownerId, ownerId));
-
-  const grouped = new Map<number, GroupedEntry>();
-  for (const row of rows) {
-    const existing = grouped.get(row.cardId);
-    if (existing) {
-      existing.copies.push({ instanceId: row.instanceId, copyNumber: row.copyNumber });
-    } else {
-      grouped.set(row.cardId, {
-        cardId: row.cardId,
-        memberName: row.memberName,
-        groupName: row.groupName,
-        era: row.era,
-        code: row.code,
-        rarity: row.rarity,
-        copies: [{ instanceId: row.instanceId, copyNumber: row.copyNumber }],
-      });
-    }
-  }
-
-  return Array.from(grouped.values()).sort((a, b) => a.groupName.localeCompare(b.groupName));
+    .where(eq(userCardsTable.ownerId, ownerId))
+    .orderBy(desc(userCardsTable.obtainedAt));
 }
 
-function buildEmbed(username: string, entries: GroupedEntry[], page: number, totalPages: number) {
+function buildEmbed(username: string, entries: InventoryEntry[], page: number, totalPages: number) {
   const start = page * PAGE_SIZE;
   const pageEntries = entries.slice(start, start + PAGE_SIZE);
 
   const embed = new EmbedBuilder()
     .setColor(0xf2c9dc)
     .setTitle(`📇 Colección de ${username}`)
-    .setFooter({ text: `Página ${page + 1} de ${Math.max(totalPages, 1)} · ${entries.length} diseños distintos` });
+    .setFooter({ text: `Página ${page + 1} de ${Math.max(totalPages, 1)} · ${entries.length} cartas` });
 
   if (pageEntries.length === 0) {
     embed.setDescription("Todavía no tiene ninguna carta. ¡Usa /drop para conseguir una!");
   } else {
     embed.setDescription(
       pageEntries
-        .map((e) => {
-          const copiesLabel = e.copies
-            .sort((a, b) => a.copyNumber - b.copyNumber)
-            .map((c) => `#${c.copyNumber} (id ${c.instanceId})`)
-            .join(", ");
-          return (
-            `**${e.memberName}** — ${e.groupName} · ${e.era} (${RARITY_LABELS[e.rarity]})\n` +
-            `Code: \`${e.code}\` · Copias: ${copiesLabel}`
-          );
-        })
+        .map(
+          (e) =>
+            `**${e.memberName}** ✨ ${e.copyNumber}\n` +
+            `${RARITY_DIAMONDS[e.rarity]} ${e.groupName} ${e.era}\n` +
+            `\`${e.code}.${e.hash}\``,
+        )
         .join("\n\n"),
     );
   }
