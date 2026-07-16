@@ -1,19 +1,21 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-// Rarity tiers, ordered from most to least common. Each idol has exactly
-// one card design per tier (three designs per idol total), each with its
-// own code suffix: base code + tier number, e.g. "ATMA" -> ATMA1/ATMA2/ATMA3.
-export const CARD_RARITIES = ["common", "rare", "epic"] as const;
+// Rarity tiers, stored as plain integers 1/2/3 (1 = most common, 3 =
+// rarest). Each idol has exactly one card design per tier (three designs
+// per idol total), each with its own code suffix matching the tier number,
+// e.g. "ATMA" -> ATMA1/ATMA2/ATMA3.
+export const CARD_RARITIES = [1, 2, 3] as const;
 export type CardRarity = (typeof CARD_RARITIES)[number];
 
-// Maps each rarity to its numeric suffix used in the display code
-// (base code + 1/2/3).
-export const RARITY_TIER: Record<CardRarity, 1 | 2 | 3> = {
-  common: 1,
-  rare: 2,
-  epic: 3,
+// Kept for readability in places that want a label instead of the bare
+// number (e.g. command descriptions). The number IS the rarity now, this
+// is purely cosmetic.
+export const RARITY_LABELS_BASE: Record<CardRarity, string> = {
+  1: "Común",
+  2: "Rara",
+  3: "Épica",
 };
 
 // The catalog of collectible idol cards. Each row is a "design" (one idol,
@@ -28,7 +30,8 @@ export const cardsTable = pgTable("cards", {
   code: text("code").notNull().unique(),
   // Human-readable era label, e.g. "ASSEMBLE25".
   era: text("era").notNull().default("—"),
-  rarity: text("rarity", { enum: CARD_RARITIES }).notNull().default("common"),
+  // 1 = common, 2 = rare, 3 = epic.
+  rarity: integer("rarity").notNull().default(1),
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
