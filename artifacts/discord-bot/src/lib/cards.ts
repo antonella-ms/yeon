@@ -3,25 +3,31 @@ import { db, cardsTable, userCardsTable, type Card, type CardRarity, type UserCa
 import { eq, sql } from "drizzle-orm";
 
 export const RARITY_COLORS: Record<CardRarity, number> = {
-  common: 0x9aa3ad,
-  rare: 0x4d8fdc,
-  epic: 0xa15bde,
+  1: 0x9aa3ad,
+  2: 0x4d8fdc,
+  3: 0xa15bde,
 };
 
 export const RARITY_LABELS: Record<CardRarity, string> = {
-  common: "Común",
-  rare: "Rara",
-  epic: "Épica",
+  1: "Común",
+  2: "Rara",
+  3: "Épica",
 };
 
 // Lemon emojis shown before the group/era line, one per rarity tier
 // (1 for common, 2 for rare, 3 for epic).
 export const RARITY_DIAMONDS: Record<CardRarity, string> = {
-  common: "🍋",
-  rare: "🍋🍋",
-  epic: "🍋🍋🍋",
+  1: "🍋",
+  2: "🍋🍋",
+  3: "🍋🍋🍋",
 };
 
+// 3-tier drop odds: rareza 1 65%, rareza 2 25%, rareza 3 10%.
+const RARITY_WEIGHTS: Record<CardRarity, number> = {
+  1: 65,
+  2: 25,
+  3: 10,
+};
 // 3-tier drop odds: rareza 1 (common) 65%, rareza 2 (rare) 25%,
 // rareza 3 (epic) 10%.
 const RARITY_WEIGHTS: Record<CardRarity, number> = {
