@@ -123,10 +123,13 @@ client.on(Events.GuildCreate, async (guild) => {
   }
 });
 
-// Replies with a casual, semi-varied message whenever someone pings the bot
-// directly in a normal message (not a slash command).
+ // Replies with a casual, semi-varied message whenever someone pings the bot
+// directly by name in a normal message (not a slash command). Explicitly
+// excludes @everyone/@here -- those also count as "mentioning" the bot in
+// discord.js's eyes, but the person didn't actually address the bot.
 client.on(Events.MessageCreate, async (message) => {
   if (message.author.bot) return;
+  if (message.mentions.everyone) return;
   if (!client.user || !message.mentions.has(client.user)) return;
 
   try {
@@ -135,7 +138,6 @@ client.on(Events.MessageCreate, async (message) => {
     logger.error({ err }, "No se pudo responder al ping");
   }
 });
-
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
     if (interaction.isChatInputCommand()) {
