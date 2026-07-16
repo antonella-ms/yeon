@@ -151,7 +151,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const [namespace, ...rest] = interaction.customId.split(":");
 
       if (namespace === "inv") {
-        await handleInventoryPage(interaction, rest[0]!, Number(rest[1]));
+        await handleInventoryPage(interaction, rest[0]!, Number(rest[1]), rest[2]);
         return;
       }
 
