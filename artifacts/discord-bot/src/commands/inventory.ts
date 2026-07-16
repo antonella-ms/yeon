@@ -39,15 +39,15 @@ export const data = new SlashCommandBuilder()
       .setDescription("Filtra por idol o idols separados por coma, ej: Jiwoo, Hyerin")
       .setRequired(false),
   )
-  .addStringOption((opt) =>
+  .addIntegerOption((opt) =>
     opt
       .setName("rareza")
       .setDescription("Filtra por rareza")
       .setRequired(false)
       .addChoices(
-        { name: "Común (🍋)", value: "common" },
-        { name: "Rara (🍋🍋)", value: "rare" },
-        { name: "Épica (🍋🍋🍋)", value: "epic" },
+        { name: "1 (🍋)", value: 1 },
+        { name: "2 (🍋🍋)", value: 2 },
+        { name: "3 (🍋🍋🍋)", value: 3 },
       ),
   )
   .addStringOption((opt) =>
@@ -87,7 +87,7 @@ function encodeFilters(f: Filters): string {
   const parts = [
     f.group ?? "",
     f.idols?.join("+") ?? "",
-    f.rarity ?? "",
+    f.rarity !== undefined ? String(f.rarity) : "",
     f.era ?? "",
     f.sort ?? "",
   ];
@@ -99,7 +99,7 @@ function decodeFilters(encoded: string): Filters {
   return {
     group: group || undefined,
     idols: idols ? idols.split("+") : undefined,
-    rarity: (rarity || undefined) as CardRarity | undefined,
+    rarity: rarity ? (Number(rarity) as CardRarity) : undefined,
     era: era || undefined,
     sort: (sort || undefined) as SortOption | undefined,
   };
@@ -176,33 +176,29 @@ function buildEmbed(
 ) {
   const start = page * PAGE_SIZE;
   const pageEntries = entries.slice(start, start + PAGE_SIZE);
-  const filterLine = describeFilters(filters);
+  const hasFilters = describeFilters(filters) !== null;
 
   const embed = new EmbedBuilder()
     .setColor(0xf2c9dc)
     .setTitle(`📇 Colección de ${username}`)
     .setFooter({ text: `Página ${page + 1} de ${Math.max(totalPages, 1)} · ${entries.length} cartas` });
 
-  const header = filterLine ? `*Filtros: ${filterLine}*\n\n` : "";
-
   if (pageEntries.length === 0) {
     embed.setDescription(
-      header +
-        (filterLine
-          ? "No se encontraron cartas con esos filtros."
-          : "Todavía no tiene ninguna carta. ¡Usa /drop para conseguir una!"),
+      hasFilters
+        ? "No se encontraron cartas con esos filtros."
+        : "Todavía no tiene ninguna carta. ¡Usa /drop para conseguir una!",
     );
   } else {
     embed.setDescription(
-      header +
-        pageEntries
-          .map(
-            (e) =>
-              `**${e.memberName}** ✨ ${e.copyNumber}\n` +
-              `${RARITY_DIAMONDS[e.rarity]} ${e.groupName} ${e.era}\n` +
-              `\`${e.code}.${e.hash}\``,
-          )
-          .join("\n\n"),
+      pageEntries
+        .map(
+          (e) =>
+            `**${e.memberName}** ✨ ${e.copyNumber}\n` +
+            `${RARITY_DIAMONDS[e.rarity]} ${e.groupName} ${e.era}\n` +
+            `\`${e.code}.${e.hash}\``,
+        )
+        .join("\n\n"),
     );
   }
 
@@ -234,7 +230,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const filters: Filters = {
     group: interaction.options.getString("grupo") ?? undefined,
     idols: idolsInput ? idolsInput.split(",").map((s) => s.trim()).filter(Boolean) : undefined,
-    rarity: (interaction.options.getString("rareza") as CardRarity | null) ?? undefined,
+    rarity: (interaction.options.getInteger("rareza") as CardRarity | null) ?? undefined,
     era: interaction.options.getString("era") ?? undefined,
     sort: (interaction.options.getString("ordenar") as SortOption | null) ?? undefined,
   };
