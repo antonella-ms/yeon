@@ -28,13 +28,6 @@ const RARITY_WEIGHTS: Record<CardRarity, number> = {
   2: 25,
   3: 10,
 };
-// 3-tier drop odds: rareza 1 (common) 65%, rareza 2 (rare) 25%,
-// rareza 3 (epic) 10%.
-const RARITY_WEIGHTS: Record<CardRarity, number> = {
-  common: 65,
-  rare: 25,
-  epic: 10,
-};
 
 const HASH_CHARS = "0123456789abcdef";
 const HASH_LENGTH = 4;
