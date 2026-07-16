@@ -33,8 +33,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const distinctDesigns = new Set(ownedCards.map((c) => c.cardId)).size;
   const [totalCatalog] = await db.select({ count: sql<number>`count(*)` }).from(cardsTable);
 
-  const rarityRank = { epic: 2, rare: 1, common: 0 };
-  const rarest = ownedCards.sort((a, b) => rarityRank[b.rarity] - rarityRank[a.rarity])[0];
+  const rarest = ownedCards.sort((a, b) => b.rarity - a.rarity)[0];
 
   const embed = new EmbedBuilder()
     .setColor(0xf2c9dc)
