@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { Client, Events, GatewayIntentBits, REST, Routes } from "discord.js";
 import { commands } from "./commands";
 import { logger } from "./lib/logger";
+import { handleGiftClaim, startGiftExpiryScheduler } from "./commands/gift";
 
 // NUEVO: a propósito, Stella NUNCA corre nada de sincronización de schema
 // (drizzle-kit push, migraciones, etc.) al arrancar. Solo lee y escribe
@@ -44,6 +45,10 @@ async function registerCommands() {
 
 client.once(Events.ClientReady, async (readyClient) => {
   logger.info({ tag: readyClient.user.tag }, "Stella Bot conectada");
+
+  startGiftExpiryScheduler(readyClient);
+  logger.info("Gift expiry scheduler iniciado");
+
   try {
     await registerCommands();
   } catch (err) {
@@ -58,6 +63,14 @@ client.on(Events.InteractionCreate, async (interaction) => {
       if (!command) return;
       await command.execute(interaction);
       return;
+    }
+
+    if (interaction.isButton()) {
+      const [namespace, ...rest] = interaction.customId.split(":");
+      if (namespace === "gift" && rest[0] === "claim") {
+        await handleGiftClaim(interaction, Number(rest[1]));
+        return;
+      }
     }
   } catch (err) {
     logger.error({ err }, "Error manejando una interacción");
